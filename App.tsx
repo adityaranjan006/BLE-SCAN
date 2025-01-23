@@ -4,12 +4,9 @@ import { Dimensions, PermissionsAndroid, Platform, ScrollView, StyleSheet, Text,
 import BleManager,{Peripheral} from 'react-native-ble-manager';
 import {Buffer} from 'buffer';
 
-let serviceid="1800";
-let caracid="2a00";
-// let serviceIdForRead="1800"; deviceID read
-// let charIdforRead="2a00"; deviceID read
-// let serviceIdForWrite="1800"; WifiPassword write
-// let charIdforWrite="2a00"; WifiPassword write
+let serviceid = "a3ab6eae-9eb9-40a7-be2a-038312f3313a";
+let readCharacteristic = "eb7a0696-4866-46fb-8513-ffd5bcf596fd";
+let writeCharacteristic = "21a65022-e96d-4961-869a-82e78b334e59";  
 
 export default function App() {
   const [devices, setDevices] = useState<any[]>([]);
@@ -70,12 +67,12 @@ export default function App() {
         console.log("Connected");
         setSelectedDevice(device);
         setIsConnected(true);
-        BleManager.requestMTU(device.id, 256).then((MTU) => {
-          console.log("MTU requested",MTU);
-        })
-        .catch((error) => {
-          console.log("Error requesting MTU:", error);
-        });
+        // BleManager.requestMTU(device.id, 256).then((MTU) => {
+        //   console.log("MTU requested",MTU);
+        // })
+        // .catch((error) => {
+        //   console.log("Error requesting MTU:", error);
+        // });
         BleManager.retrieveServices(device.id).then(
           (deviceInfo) => {
           // Success code
@@ -126,7 +123,7 @@ export default function App() {
        BleManager.write(
          selectedDevice.id,
          serviceid,
-         caracid,
+         writeCharacteristic,
          buffer.toJSON().data
        ).then(() => {
          // Success code
@@ -147,7 +144,7 @@ export default function App() {
        BleManager.read(
          selectedDevice.id,
          serviceid,
-         caracid
+         readCharacteristic
        )
          .then((readData) => {
            // Success code
@@ -348,7 +345,6 @@ const initializeBLE = () => {
     }).catch((error) => {
         console.log("Error initializing BLE:", error);
     });
-    
 }
 
 return (
