@@ -190,6 +190,36 @@ export default function App() {
       });*/
   };
   useEffect(() => {
+    if (Platform.OS === 'android' && Platform.Version >= 23) {
+        PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN)
+            .then(checkResult => {
+                if (!checkResult) {
+                    PermissionsAndroid.requestMultiple([
+                        PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+                        PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+                        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+                    ]).then(result => {
+                        if (result['android.permission.BLUETOOTH_SCAN'] === 'granted' &&
+                            result['android.permission.BLUETOOTH_CONNECT'] === 'granted' &&
+                            result['android.permission.ACCESS_FINE_LOCATION'] === 'granted'
+                        ) {
+                            console.log('All permissions granted');
+                            // Initialize BLE only after permissions are granted
+                            initializeBLE();
+                        } else {
+                            console.log('Some permissions denied');
+                        }
+                    });
+                } else {
+                    // Permissions already granted, initialize BLE
+                    checkBluetoothEnabled();
+                    initializeBLE();
+                }
+            });
+    } else {
+      checkBluetoothEnabled();
+        initializeBLE();
+    }
     const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
     
     const stateChangeListener = bleManagerEmitter.addListener(
@@ -243,35 +273,6 @@ export default function App() {
       }
     }, 5000);
 
-    checkBluetoothEnabled();
-    if (Platform.OS === 'android' && Platform.Version >= 23) {
-        PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN)
-            .then(checkResult => {
-                if (!checkResult) {
-                    PermissionsAndroid.requestMultiple([
-                        PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
-                        PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
-                        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-                    ]).then(result => {
-                        if (result['android.permission.BLUETOOTH_SCAN'] === 'granted' &&
-                            result['android.permission.BLUETOOTH_CONNECT'] === 'granted' &&
-                            result['android.permission.ACCESS_FINE_LOCATION'] === 'granted'
-                        ) {
-                            console.log('All permissions granted');
-                            // Initialize BLE only after permissions are granted
-                            initializeBLE();
-                        } else {
-                            console.log('Some permissions denied');
-                        }
-                    });
-                } else {
-                    // Permissions already granted, initialize BLE
-                    initializeBLE();
-                }
-            });
-    } else {
-        initializeBLE();
-    }
     BleManager.checkState().then((state) =>
       console.log(`current BLE state = '${state}'.`)
     );
